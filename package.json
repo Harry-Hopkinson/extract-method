@@ -56,7 +56,7 @@
         "type": "git",
         "url": "https://github.com/Harry-Hopkinson/extract-method"
     },
-    "icon": "./images/icon.png",
+    "icon": "images/icon.png",
     "author": "Harry Hopkinson",
     "license": "MIT",
     "bugs": {
