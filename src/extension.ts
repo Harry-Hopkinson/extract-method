@@ -64,7 +64,9 @@ export function activate({ subscriptions }: vscode.ExtensionContext) {
                 if (editor) {
                     if (editor.selection.isEmpty) {
                         return vscode.window.showErrorMessage("Please Select Text before Extracting a Method");
-                    } else if (editor.selection.start.line === editor.selection.end.line) {
+                    }
+                    // check for multiple lines
+                    if (editor.selection.start.line === editor.selection.end.line) {
                         const { selection } = editor;
                         const { document } = editor;
                         const text = document.getText(selection);
@@ -72,10 +74,9 @@ export function activate({ subscriptions }: vscode.ExtensionContext) {
                         const edit = new vscode.WorkspaceEdit();
                         const methodName = await vscode.window.showInputBox({ prompt: "Enter Method Name" });
                         if (methodName) {
-                            const newText = `function ${methodName}() {\n\t${text}`;
+                            const newText = `function ${methodName}() {\n\t${text}\n}`;
                             edit.delete(document.uri, selection);
                             edit.insert(document.uri, position, newText);
-                            edit.insert(document.uri, new vscode.Position(position.line + 1, 0), "\n}");
                             await vscode.workspace.applyEdit(edit);
                         } else {
                             return vscode.window.showErrorMessage("Method Name is Required");
@@ -91,28 +92,21 @@ export function activate({ subscriptions }: vscode.ExtensionContext) {
                             if (selection.start.line !== selection.end.line) {
                                 if (selection.start.character === 0) {
                                     text = text.replace(/\n/g, "\n\t");
-                                    text = `${methodName}() {\n\t${text}`;
+                                    text = `function ${methodName}() {\n\t${text}\n}`;
                                     edit.delete(document.uri, selection);
                                     edit.insert(document.uri, position, text);
-                                    edit.insert(document.uri, new vscode.Position(position.line + 1, 0), "\n}");
                                     await vscode.workspace.applyEdit(edit);
                                 } else {
                                     text = text.replace(/^\s+/, "");
-                                    const newText = `${methodName}() {\n\t${text}`;
+                                    const newText = `function ${methodName}() {\n\t${text}\n}`;
                                     edit.delete(document.uri, selection);
-                                    edit.insert(
-                                        document.uri,
-                                        new vscode.Position(position.line, position.character + text.length),
-                                        "}",
-                                    );
                                     edit.insert(document.uri, position, newText);
                                     await vscode.workspace.applyEdit(edit);
                                 }
                             } else {
-                                const newText = `${methodName}() {\n\t${text}`;
+                                const newText = `function ${methodName}() {\n\t${text}\n}`;
                                 edit.delete(document.uri, selection);
                                 edit.insert(document.uri, position, newText);
-                                edit.insert(document.uri, new vscode.Position(position.line + 1, 0), "\n}");
                                 await vscode.workspace.applyEdit(edit);
                             }
                         } else {
@@ -123,6 +117,8 @@ export function activate({ subscriptions }: vscode.ExtensionContext) {
                     return vscode.window.showErrorMessage("Open an Active Editor before Extracting a Method");
                 }
                 return undefined;
+            } else {
+                return vscode.window.showErrorMessage("Extract Method is not supported for this Language");
             }
         }),
     );
